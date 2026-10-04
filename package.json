@@ -1,0 +1,12 @@
+{
+  "name": "fretly",
+  "version": "1.0.0",
+  "description": "FRETLY – Guitar Practice Studio mit kleinem Node.js-Backend",
+  "private": true,
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=6"
+  }
+}

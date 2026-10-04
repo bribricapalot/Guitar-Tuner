@@ -1,0 +1,7 @@
+# Gespeicherte Songs und Datenbank (lokal, nicht ins Repo)
+server/data/
+
+# IDE
+.idea/
+
+node_modules/

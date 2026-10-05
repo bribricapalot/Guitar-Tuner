@@ -9,6 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/wavesurfer.js@7"></script>
   <link rel="stylesheet" href="style.css">
+  <script>
+    // Design sofort setzen, damit beim Laden nichts hell aufblitzt (Schalter: script.js)
+    try {
+      var theme = localStorage.getItem('fretly.theme');
+      document.documentElement.dataset.theme = theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch (e) {}
+  </script>
 </head>
 <body>
 <div class="screen">
@@ -29,6 +36,11 @@
   <main class="main">
     <!-- HOME VIEW -->
     <section id="home" class="view active">
+      <button class="theme-toggle" id="themeToggle" type="button" role="switch" aria-checked="false" title="Dunkles Design ein- oder ausschalten">
+        <span class="theme-icon" aria-hidden="true">☾</span>
+        <span class="theme-label">Dark Mode</span>
+        <span class="theme-switch" aria-hidden="true"><i></i></span>
+      </button>
       <div class="hero">
         <div class="eyebrow">Dein persönliches Practice Studio — 01</div>
         <h1>Spiel weniger.<br><em>Verstehe</em> mehr.</h1>
@@ -105,9 +117,8 @@
               <div>
                 <div class="eyebrow">Interactive fretboard / synced</div>
                 <h2 id="trackTitle">Midnight drive</h2>
-                <p>Standard Tuning · Capo 0 · 94 BPM</p>
+                <p>Standard Tuning · <span class="capo-ctl" title="Kapodaster (Capo) für diesen Song">Capo <button id="capoDown" aria-label="Capo tiefer">−</button><b id="capoValue">0</b><button id="capoUp" aria-label="Capo höher">+</button></span> · 94 BPM</p>
               </div>
-              <span class="pill">● PRACTICE MODE</span>
             </div>
             <div class="fret-stage" id="fretStage">
               <div class="fretboard" id="board">
@@ -117,10 +128,9 @@
                 <span class="string"></span>
                 <span class="string"></span>
                 <span class="string"></span>
-                <span class="note root" style="left:15%;top:112px">3</span>
-                <span class="note" style="left:24%;top:88px">2</span>
-                <span class="note" style="left:24%;top:64px">1</span>
-                <span class="strum">↓<br>↓<br>↑</span>
+                <span class="note root" style="left:16.667%;top:112px">3</span>
+                <span class="note" style="left:10%;top:88px">2</span>
+                <span class="note" style="left:3.333%;top:40px">1</span>
               </div>
             </div>
             <label class="toggle">
@@ -137,6 +147,7 @@
             <div class="controls">
               <label>SPEED <input id="speed" type="range" min=".5" max="1.5" value="1" step=".05"></label>
               <label>PITCH <input id="pitch" type="range" min="-12" max="12" value="0"></label>
+              <label>VOLUME <input id="volume" type="range" min="0" max="1" value="1" step=".01"></label>
               <button class="loop" id="loop">A—B LOOP</button>
             </div>
           </div>

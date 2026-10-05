@@ -14,11 +14,12 @@ const url = require('url');
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, '..');
-const DATA_DIR = path.join(__dirname, 'data');
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, 'data');
 const AUDIO_DIR = path.join(DATA_DIR, 'audio');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const MAX_UPLOAD = 100 * 1024 * 1024; // 100 MB
 const MAX_JSON = 1024 * 1024; // 1 MB
+const MAX_TRACKS = 100; // höchstens 100 Songs in der Library
 
 // Nur diese Frontend-Dateien werden ausgeliefert
 const STATIC_FILES = {
@@ -164,6 +165,10 @@ function handleApi(req, res, parts) {
 
     // POST /api/tracks  (Body = Audio-Datei, Name im Header X-File-Name)
     if (!id && req.method === 'POST') {
+        if (db.tracks.length >= MAX_TRACKS) {
+            req.resume();
+            return sendJson(res, 409, { error: 'Die Library ist voll (' + MAX_TRACKS + ' Songs). Lösche zuerst einen Song.' });
+        }
         let name = 'audio';
         try {
             name = decodeURIComponent(req.headers['x-file-name'] || 'audio');
@@ -216,6 +221,25 @@ function handleApi(req, res, parts) {
                 return sendJson(res, 400, { error: 'Ungültiges JSON.' });
             }
             track.state = state;
+            saveDb();
+            sendJson(res, 200, publicTrack(track));
+        });
+    }
+
+    // PATCH /api/tracks/:id  (JSON: { title }) – Song umbenennen, Dateiendung bleibt
+    if (!sub && req.method === 'PATCH') {
+        return readBody(req, MAX_JSON, (err, buf) => {
+            if (err) return sendJson(res, 413, { error: 'Anfrage ist zu groß.' });
+            let body;
+            try {
+                body = JSON.parse(buf.toString('utf8'));
+            } catch (e) {
+                return sendJson(res, 400, { error: 'Ungültiges JSON.' });
+            }
+            const title = typeof body.title === 'string' ? body.title.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').trim().slice(0, 150) : '';
+            if (!title) return sendJson(res, 400, { error: 'Bitte einen Namen eingeben.' });
+            track.title = title;
+            track.name = title + path.extname(track.name);
             saveDb();
             sendJson(res, 200, publicTrack(track));
         });

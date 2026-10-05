@@ -64,12 +64,22 @@ button, input, select {
     color: #74920b;
 }
 
+/* Status oben rechts (z. B. LIBRARY MODE): hellgrün hervorgehoben */
 .status {
-    font: 12px 'DM Mono';
-    color: #697069;
+    font: 600 12px 'DM Mono';
+    color: #2f4a00;
+    background: var(--lime);
+    border: 1px solid #c2e83a;
+    border-radius: 20px;
+    padding: 6px 12px;
     display: flex;
     align-items: center;
     gap: 9px;
+    box-shadow: 0 0 0 4px #ddff6333, 0 0 18px #ddff6355;
+}
+
+.status .dot {
+    background: #4f7a00;
 }
 
 .dot {
@@ -195,20 +205,24 @@ button, input, select {
 .library {
     height: 100%;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) var(--editor-h, 320px);
+    grid-template-rows: minmax(0, 1fr) var(--editor-h, 370px);
     background: #e5e6dc;
 }
 
 .library-top {
     display: grid;
     grid-template-columns: 245px 1fr;
+    grid-template-rows: minmax(0, 1fr);
     min-height: 0;
 }
 
+/* Lange Song-Listen scrollen, statt den Bereich (und das Griffbrett) nach unten zu drücken */
 .side {
     background: #f7f6f0;
     padding: 25px;
     border-right: 1px solid #d4d6cd;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .side h2 {
@@ -257,19 +271,68 @@ button, input, select {
     white-space: nowrap;
 }
 
-.track-delete {
-    border: 0;
-    background: transparent;
-    color: #a34c35;
-    font-size: 15px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity .15s;
+.track {
+    position: relative;
 }
 
-.track:hover .track-delete,
-.track-delete:focus-visible {
+.track-more {
+    border: 0;
+    background: transparent;
+    color: #6f766c;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s;
+}
+
+.track:hover .track-more,
+.track-more:focus-visible,
+.track:has(.track-menu) .track-more {
     opacity: 1;
+}
+
+.track-more:hover {
+    background: #e5e8db;
+}
+
+.track-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% - 6px);
+    z-index: 20;
+    min-width: 150px;
+    padding: 5px;
+    background: #fffdf8;
+    border: 1px solid #d4d6cd;
+    border-radius: 9px;
+    box-shadow: 0 10px 24px #2a2e2633;
+    display: flex;
+    flex-direction: column;
+}
+
+.track-menu button {
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #273027;
+    cursor: pointer;
+}
+
+.track-menu button:hover,
+.track-menu button:focus-visible {
+    background: #eef0e6;
+    outline: none;
+}
+
+.track-menu button.danger {
+    color: #a34c35;
 }
 
 .library-notice,
@@ -292,6 +355,24 @@ button, input, select {
     display: grid;
     place-items: center;
     font-size: 8px;
+    flex-shrink: 0;
+}
+
+button.disc {
+    border: 0;
+    padding: 0;
+    color: #273027;
+    cursor: pointer;
+    transition: background .15s, transform .15s;
+}
+
+button.disc:hover {
+    background: var(--lime);
+    transform: scale(1.1);
+}
+
+button.disc.playing {
+    background: var(--lime);
 }
 
 .workspace {
@@ -358,15 +439,12 @@ button, input, select {
     transform: translateX(-50%) scaleX(-1);
 }
 
-.fretboard.mirrored .strum {
-    transform: scaleX(-1);
-}
-
 .fretboard:before {
     content: "";
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(90deg, transparent 0 50px, #d5bd83 51px 54px);
+    /* 15 Bünde: Bundstäbchen in gleichen Abständen (passt zu FRETS in script.js) */
+    background: repeating-linear-gradient(90deg, transparent 0 calc(100% / 15 - 3px), #d5bd83 calc(100% / 15 - 3px) calc(100% / 15));
 }
 
 .string {
@@ -405,15 +483,6 @@ button, input, select {
 .note.root {
     background: var(--orange);
     color: white;
-}
-
-.strum {
-    position: absolute;
-    z-index: 4;
-    right: -34px;
-    font-size: 24px;
-    font-weight: 800;
-    color: #f6ffcf;
 }
 
 .editor {
@@ -883,7 +952,7 @@ button, input, select {
     cursor: pointer;
 }
 
-.track-tools button:last-child {
+.track-tools button:last-child:not(:only-child) {
     background: #ddff63;
 }
 
@@ -972,6 +1041,156 @@ button, input, select {
     z-index: 4;
 }
 
+/* Spur auswählen: Klick auf die Zeile */
+.timeline-row {
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.timeline-row:hover {
+    background: #1d271e;
+}
+
+.timeline-row.selected {
+    background: #26341f;
+    box-shadow: inset 3px 0 0 var(--lime);
+}
+
+.timeline-row.selected .row-title {
+    color: var(--lime);
+}
+
+
+.clip.selected {
+    outline: 2px solid var(--lime);
+    outline-offset: 2px;
+}
+
+/* Verankerter Clip: bewegt sich nicht */
+.clip[data-anchor="1"] {
+    cursor: not-allowed;
+    background-image: repeating-linear-gradient(135deg, transparent 0 6px, #0000001a 6px 8px);
+}
+
+.clip[data-anchor="1"] .handle {
+    display: none;
+}
+
+.clip[data-anchor="1"] .clip-label:before {
+    content: "⚓ ";
+}
+
+.clip-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Abspiel-Strich über alle Spuren */
+.playhead {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--orange);
+    box-shadow: 0 0 6px #ff684488;
+    z-index: 6;
+    cursor: ew-resize;
+    touch-action: none;
+}
+
+/* Breitere Greiffläche und Griff oben am Strich */
+.playhead:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -6px;
+    right: -6px;
+}
+
+.playhead:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: var(--orange);
+    border-radius: 2px 2px 6px 6px;
+    transform: translateX(-50%);
+}
+
+.timeline.scrubbing,
+.timeline.scrubbing * {
+    cursor: ew-resize !important;
+    user-select: none;
+}
+
+.ruler {
+    cursor: ew-resize;
+    touch-action: none;
+}
+
+/* Block mit eigenem Griff */
+.clip.own-shape .clip-label:after {
+    content: " ✋";
+}
+
+/* Leiste für ausgewählte Spur / Clip */
+.tl-context {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    margin: 4px 0;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.tl-context-info {
+    font: 9px 'DM Mono';
+    color: #8f9b8c;
+    margin-right: 6px;
+    letter-spacing: .5px;
+}
+
+.tl-context button {
+    border: 1px solid #5b6658;
+    background: #202820;
+    color: #eff5e8;
+    border-radius: 5px;
+    padding: 5px 8px;
+    font: 10px 'DM Mono';
+    cursor: pointer;
+}
+
+.tl-context button:hover {
+    border-color: var(--lime);
+}
+
+.tl-context button.on {
+    background: var(--lime);
+    color: #192018;
+    border-color: var(--lime);
+}
+
+.tl-context button.danger {
+    border-color: #7a4636;
+    color: #ffb7a3;
+}
+
+.tl-context button.danger:hover {
+    background: #4a271d;
+}
+
+.tl-context button.ghost {
+    border-color: transparent;
+    background: transparent;
+    color: #8f9b8c;
+}
+
 .clip {
     position: absolute;
     top: 6px;
@@ -1013,15 +1232,6 @@ button, input, select {
 .clip .left { left: 0; }
 .clip .right { right: 0; }
 
-.add-lane {
-    color: #dfff63;
-    cursor: pointer;
-    border: 1px dashed #52644c;
-    background: transparent;
-    border-radius: 5px;
-    padding: 4px 8px;
-    font: 9px 'DM Mono';
-}
 
 .zoom-box {
     position: absolute;
@@ -1058,4 +1268,679 @@ button, input, select {
     .controls { gap: 5px; }
     .controls label { display: none; }
     .editbar { right: 14px; bottom: 14px; }
+}
+/* ---------- Akkordstreifen: Leuchten & Griffanzeige ---------- */
+
+/* Akkord unter dem Abspiel-Strich leuchtet */
+.clip.playing {
+    background: var(--lime);
+    box-shadow: 0 0 0 2px #ddff6355, 0 0 18px #ddff63aa;
+}
+
+.clip.playing .clip-label {
+    color: #101510;
+    text-shadow: 0 0 8px #ffffffcc;
+}
+
+/* Akkord, den es in der Library nicht gibt: kein Griff */
+.clip.unknown {
+    background: #5b6252;
+    color: #d6dccd;
+    border: 1px dashed #9aa38f;
+}
+
+.clip.unknown.playing {
+    background: #7b8470;
+    box-shadow: 0 0 14px #ffffff44;
+}
+
+/* Griff des gerade gespielten Akkords auf dem Library-Griffbrett */
+.live-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.live-layer .note {
+    animation: chord-in .18s ease-out;
+}
+
+/* Ist ein Akkord-Block aktiv, zeigt das Griffbrett nur seinen Griff – auch beim Bearbeiten */
+.fretboard.live-mode > .note {
+    display: none;
+}
+
+.fretboard.editing .live-layer .note {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+@keyframes chord-in {
+    from { opacity: 0; scale: .6; }
+    to { opacity: 1; scale: 1; }
+}
+
+.fret-stage {
+    position: relative;
+}
+
+.chord-badge {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: var(--ink);
+    color: var(--lime);
+    font: 600 14px 'DM Mono';
+    letter-spacing: .5px;
+    box-shadow: 0 0 0 3px #ddff6333;
+    z-index: 6;
+}
+
+.chord-badge.unknown {
+    color: #c9cfc0;
+    box-shadow: none;
+}
+
+
+/* ---------- Echte Griffe: Barré, leere und gedämpfte Saiten ---------- */
+
+/* Barré: langes Oval über mehrere Saiten */
+.note.barre {
+    width: 25px;
+    border-radius: 13px;
+    background: var(--lime);
+    z-index: 2;
+}
+
+/* Leere Saite (○) und gedämpfte Saite (×) links vom Sattel */
+.note.open-string,
+.note.muted-string {
+    width: 16px;
+    height: 16px;
+    box-shadow: none;
+    font-size: 11px;
+    pointer-events: none;
+}
+
+.note.open-string {
+    background: transparent;
+    border: 2px solid #3d4a36;
+}
+
+/* Im Bearbeiten-Modus: Klick auf ○ dämpft die Saite (×), Klick auf × macht sie wieder leer */
+.fretboard.editing .note.open-string,
+.fretboard.editing .note.muted-string {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.fretboard.editing .note.open-string:hover {
+    border-color: #a34c35;
+    background: #a34c3522;
+}
+
+.fretboard.editing .note.muted-string:hover {
+    color: #3d4a36;
+}
+
+.note.open-string.root {
+    border-color: var(--orange);
+}
+
+.note.muted-string {
+    background: transparent;
+    border: 0;
+    color: #8f5440;
+    font-size: 15px;
+}
+
+.fretboard.editing.barre-mode {
+    cursor: ns-resize;
+}
+
+.barre-tool {
+    letter-spacing: .5px;
+}
+
+.barre-tool.active {
+    background: var(--orange) !important;
+    color: #fff !important;
+}
+
+/* Capo: Balken über alle Saiten kurz vor dem Bundstäbchen */
+.capo-bar {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    width: 14px;
+    margin-left: -7px;
+    border-radius: 7px;
+    background: linear-gradient(90deg, #1b1f1b, #3a423a 45%, #1b1f1b);
+    box-shadow: 0 2px 6px #0008;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.capo-ctl {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.capo-ctl button {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid #c7cbc1;
+    border-radius: 4px;
+    background: #f8f9f4;
+    color: #3b4239;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.capo-ctl button:hover {
+    border-color: #91ae28;
+}
+
+.capo-ctl b {
+    min-width: 14px;
+    text-align: center;
+    color: #101510;
+}
+
+/* ---------- Anschlag ---------- */
+
+/* Anschlag-Spur in der Timeline */
+.strum-row {
+    cursor: default;
+}
+
+.strum-row:hover {
+    background: transparent;
+}
+
+.strum-mark {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font: 700 15px 'DM Mono';
+    color: #9fb07f;
+    cursor: pointer;
+    z-index: 3;
+    transition: color .1s, transform .1s;
+}
+
+.strum-mark.up {
+    color: #7fb0a3;
+}
+
+.strum-mark.active {
+    color: var(--lime);
+    transform: translate(-50%, -50%) scale(1.5);
+    text-shadow: 0 0 8px #ddff63aa;
+}
+
+/* Links am Griffbrett: aktueller Anschlag */
+.strum-now {
+    position: absolute;
+    left: 2.5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.strum-now small,
+.strum-pad small {
+    font: 9px 'DM Mono';
+    color: #7d8579;
+    letter-spacing: .5px;
+}
+
+.strum-arrow {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--ink);
+    color: var(--lime);
+    font: 800 32px Manrope;
+    box-shadow: 0 0 0 4px #ddff6322;
+}
+
+.strum-now.idle .strum-arrow {
+    background: #d9dbd1;
+    color: #9ca196;
+    box-shadow: none;
+}
+
+.strum-now.down.hit .strum-arrow {
+    animation: strum-down .35s ease-out;
+}
+
+.strum-now.up.hit .strum-arrow {
+    animation: strum-up .35s ease-out;
+    color: #9ff0d9;
+}
+
+@keyframes strum-down {
+    0% { transform: translateY(-14px); box-shadow: 0 0 0 10px #ddff6366; }
+    100% { transform: translateY(0); box-shadow: 0 0 0 4px #ddff6322; }
+}
+
+@keyframes strum-up {
+    0% { transform: translateY(14px); box-shadow: 0 0 0 10px #9ff0d966; }
+    100% { transform: translateY(0); box-shadow: 0 0 0 4px #ddff6322; }
+}
+
+/* Rechts am Griffbrett: Knöpfe für das Anschlagmuster des ausgewählten Akkords */
+.strum-pad {
+    position: absolute;
+    right: 2.5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 5;
+}
+
+.strum-pad button {
+    width: 40px;
+    height: 34px;
+    border: 1px solid #c7cbc1;
+    border-radius: 8px;
+    background: #f8f9f4;
+    color: #273027;
+    font: 800 18px Manrope;
+    cursor: pointer;
+}
+
+.strum-pad button[data-strum="back"],
+.strum-pad button[data-strum="clear"] {
+    height: 26px;
+    font-size: 12px;
+}
+
+.strum-pad button:not(:disabled):hover {
+    background: var(--lime);
+    border-color: #91ae28;
+}
+
+.strum-pad button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.strum-pattern {
+    font: 700 11px 'DM Mono';
+    color: #4c5649;
+    text-align: center;
+    word-break: break-all;
+    max-width: 64px;
+}
+
+.strum-pad.disabled .strum-pattern {
+    color: #9ca196;
+    font-weight: 400;
+}
+
+/* ---------- Gruppen ---------- */
+
+.group-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.group-frame {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    margin-left: -3px;
+    padding-right: 6px;
+    box-sizing: content-box;
+    border: 1px dashed #9fb07f;
+    border-radius: 7px;
+    background: #ddff6310;
+}
+
+.group-frame.selected {
+    border: 2px solid var(--lime);
+    background: #ddff631c;
+}
+
+.clip[data-group] .handle {
+    display: none;
+}
+
+
+/* Akkord-Schild über dem Griffbrett: Klick benennt den Akkord um */
+.chord-badge {
+    cursor: pointer;
+    transition: box-shadow .15s, transform .15s;
+}
+
+.chord-badge:hover {
+    box-shadow: 0 0 0 3px var(--lime);
+    transform: translateX(-50%) scale(1.06);
+}
+
+.chord-badge:hover:after {
+    content: " ✎";
+    font-size: 12px;
+}
+
+/* Library-Limit */
+.library-count {
+    margin-left: 8px;
+    font: 500 11px 'DM Mono';
+    color: #8c9289;
+    letter-spacing: 0;
+    vertical-align: middle;
+}
+
+.library-count.full {
+    color: #a34c35;
+}
+
+.upload.disabled,
+.track-tools button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+
+/* ---------- Dark Mode ---------- */
+
+/* Schalter im Studio unten rechts */
+.theme-toggle {
+    position: fixed;
+    right: 30px;
+    bottom: 28px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 14px;
+    border: 1px solid #d7d7cf;
+    border-radius: 30px;
+    background: #f9f8f2;
+    color: var(--ink);
+    font: 700 12px Manrope;
+    cursor: pointer;
+    box-shadow: 0 8px 22px #26301619;
+    transition: background .2s, border-color .2s, color .2s;
+}
+
+.theme-toggle:hover {
+    border-color: #91ae28;
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid #91ae28;
+    outline-offset: 3px;
+}
+
+.theme-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.theme-switch {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: #d9dbd1;
+    transition: background .2s;
+}
+
+.theme-switch i {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px #0003;
+    transition: transform .2s;
+}
+
+.theme-toggle[aria-checked="true"] .theme-switch {
+    background: var(--lime);
+}
+
+.theme-toggle[aria-checked="true"] .theme-switch i {
+    transform: translateX(16px);
+    background: #101510;
+}
+
+/* Dunkle Farben für alle hellen Flächen (Editor, Tuner und Timeline sind ohnehin dunkel) */
+html[data-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+    background: #0e120e;
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .topbar {
+    background: #141914;
+    border-bottom-color: #283028;
+}
+
+html[data-theme="dark"] .nav {
+    background: #1d241d;
+}
+
+html[data-theme="dark"] .nav button {
+    color: #a3ad9d;
+}
+
+html[data-theme="dark"] .nav button.active {
+    background: var(--lime);
+    color: #101510;
+}
+
+html[data-theme="dark"] .brand i,
+html[data-theme="dark"] .hero h1 em,
+html[data-theme="dark"] .track.active {
+    color: var(--lime);
+}
+
+html[data-theme="dark"] .eyebrow,
+html[data-theme="dark"] .workspace p {
+    color: #8f9a89;
+}
+
+html[data-theme="dark"] .hero {
+    background: radial-gradient(circle at 70% 26%, #3c4a12 0, #1b240f 15%, transparent 39%), #0e120e;
+}
+
+html[data-theme="dark"] .feature {
+    background: #161b16;
+    border-color: #2a322a;
+}
+
+html[data-theme="dark"] .feature:hover {
+    background: var(--lime);
+    border-color: var(--lime);
+    color: #101510;
+}
+
+html[data-theme="dark"] .theme-toggle {
+    background: #171c17;
+    border-color: #2f382f;
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .theme-switch {
+    background: #2f382f;
+}
+
+/* Library */
+html[data-theme="dark"] .library {
+    background: #121712;
+}
+
+html[data-theme="dark"] .side {
+    background: #151a15;
+    border-right-color: #283028;
+}
+
+html[data-theme="dark"] .track {
+    border-bottom-color: #252c25;
+}
+
+html[data-theme="dark"] .track-more {
+    color: #9aa594;
+}
+
+html[data-theme="dark"] .track-more:hover,
+html[data-theme="dark"] .track-menu button:hover,
+html[data-theme="dark"] .track-menu button:focus-visible {
+    background: #263026;
+}
+
+html[data-theme="dark"] .track-menu {
+    background: #1b211b;
+    border-color: #2f382f;
+}
+
+html[data-theme="dark"] .track-menu button {
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .track-menu button.danger {
+    color: #ff9a80;
+}
+
+html[data-theme="dark"] .disc {
+    background: #2b3523;
+}
+
+html[data-theme="dark"] button.disc {
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] button.disc:hover,
+html[data-theme="dark"] button.disc.playing {
+    color: #101510;
+}
+
+/* Grüne Flächen behalten dunkle Schrift */
+html[data-theme="dark"] .upload,
+html[data-theme="dark"] .play {
+    color: #101510;
+}
+
+html[data-theme="dark"] .track-tools button {
+    background: #222a22;
+    color: #cfd8c8;
+}
+
+html[data-theme="dark"] .library-notice {
+    color: #d9a46b;
+}
+
+html[data-theme="dark"] .capo-ctl button,
+html[data-theme="dark"] .strum-pad button,
+html[data-theme="dark"] .zoom-value {
+    background: #1e251e;
+    border-color: #364036;
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .capo-ctl b,
+html[data-theme="dark"] .strum-pattern {
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .strum-now small,
+html[data-theme="dark"] .strum-pad small,
+html[data-theme="dark"] .fret-no {
+    color: #85907f;
+}
+
+html[data-theme="dark"] .strum-now.idle .strum-arrow {
+    background: #232b23;
+    color: #6f7a6a;
+}
+
+html[data-theme="dark"] .strum-arrow,
+html[data-theme="dark"] .chord-badge {
+    background: #050705;
+    box-shadow: 0 0 0 2px #ddff6355;
+}
+
+html[data-theme="dark"] .editbar {
+    background: #171c17;
+    border-color: #2f382f;
+}
+
+html[data-theme="dark"] .editbar button,
+html[data-theme="dark"] .finger-choice {
+    background: #232b23;
+    color: #dfe7d9;
+}
+
+html[data-theme="dark"] .editbar button.edit-on {
+    background: var(--lime);
+    color: #101510;
+}
+
+html[data-theme="dark"] .note.open-string {
+    border-color: #c3ccbd;
+}
+
+html[data-theme="dark"] .fretboard {
+    box-shadow: 0 6px 0 #1f130b, 0 12px 0 #160d07, 0 32px 40px #00000088;
+}
+
+/* Chord Finder */
+html[data-theme="dark"] .finder {
+    background: #121712;
+}
+
+html[data-theme="dark"] .finder-side {
+    border-right-color: #283028;
+}
+
+html[data-theme="dark"] .finder-stage {
+    background: radial-gradient(circle at center, #2a3612, transparent 40%);
+}
+
+html[data-theme="dark"] .search {
+    background: #1a201a;
+    border-color: #2f382f;
+    color: #e6ece0;
+}
+
+html[data-theme="dark"] .chords button {
+    background: #1a201a;
+    border-color: #2a322a;
+    color: #dfe7d9;
+}
+
+html[data-theme="dark"] .chords button.active {
+    background: var(--lime);
+    color: #101510;
 }
